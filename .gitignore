@@ -1,0 +1,8 @@
+# Artefactos generados por los notebooks
+*.pkl
+Validacion_Masiva_*.xlsx
+
+# Jupyter / Python
+.ipynb_checkpoints/
+__pycache__/
+.venv/
