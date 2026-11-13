@@ -1,0 +1,70 @@
+{
+  "fuente": "dataset_medios_pago_sintetico.csv (v10, datos sintéticos)",
+  "tope_incentivo_cop": 25000,
+  "incentivo_aplica_a": "DIRECT_ACCOUNT_TRANSFER",
+  "categorias": {
+    "restaurant": {
+      "mcc_category": "Restaurantes",
+      "mcc_code": 5812,
+      "merchant_avg_ticket_size": 49900.0,
+      "merchant_tx_volume_30d": 2556,
+      "merchant_accepts_installment": false,
+      "campania_pct": 0.1
+    },
+    "grocery": {
+      "mcc_category": "Supermercados",
+      "mcc_code": 5411,
+      "merchant_avg_ticket_size": 126800.0,
+      "merchant_tx_volume_30d": 2762,
+      "merchant_accepts_installment": true,
+      "campania_pct": 0.05
+    },
+    "fuel": {
+      "mcc_category": "Estaciones de Servicio",
+      "mcc_code": 5541,
+      "merchant_avg_ticket_size": 90100.0,
+      "merchant_tx_volume_30d": 2085,
+      "merchant_accepts_installment": false,
+      "campania_pct": 0.0
+    },
+    "clothing": {
+      "mcc_category": "Tiendas de Ropa",
+      "mcc_code": 5651,
+      "merchant_avg_ticket_size": 222100.0,
+      "merchant_tx_volume_30d": 2850,
+      "merchant_accepts_installment": true,
+      "campania_pct": 0.15
+    },
+    "pharmacy": {
+      "mcc_category": "Farmacias",
+      "mcc_code": 5912,
+      "merchant_avg_ticket_size": 34600.0,
+      "merchant_tx_volume_30d": 2776,
+      "merchant_accepts_installment": false,
+      "campania_pct": 0.0
+    }
+  },
+  "perfiles": {
+    "USR-1385": {
+      "nombre": "Saldo holgado",
+      "user_avg_ticket_size": 85900.0,
+      "user_cashback_responsiveness": 0.67,
+      "user_credit_limit_utilization": 0.88,
+      "saldo_cop": 900000
+    },
+    "USR-1483": {
+      "nombre": "Saldo ajustado",
+      "user_avg_ticket_size": 328700.0,
+      "user_cashback_responsiveness": 0.71,
+      "user_credit_limit_utilization": 0.15,
+      "saldo_cop": 150000
+    },
+    "USR-1372": {
+      "nombre": "Busca cashback",
+      "user_avg_ticket_size": 167200.0,
+      "user_cashback_responsiveness": 0.9,
+      "user_credit_limit_utilization": 0.74,
+      "saldo_cop": 400000
+    }
+  }
+}

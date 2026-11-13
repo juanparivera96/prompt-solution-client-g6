@@ -6,3 +6,6 @@ Validacion_Masiva_*.xlsx
 .ipynb_checkpoints/
 __pycache__/
 .venv/
+
+# La API sí necesita los artefactos del modelo
+!api/model/*.pkl

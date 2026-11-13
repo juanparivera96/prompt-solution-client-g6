@@ -1,0 +1,13 @@
+# Mismas versiones con las que se entrenó y exportó model_payment_final.pkl.
+# Un .pkl de scikit-learn/XGBoost solo es confiable si se carga con la versión que lo creó.
+fastapi==0.162.5
+uvicorn==0.54.0
+pydantic==2.12.4
+numpy==2.3.5
+pandas==2.3.3
+scipy==1.16.3
+scikit-learn==1.7.2
+joblib==1.5.2
+# En Linux (Render) se usa la variante solo-CPU: mismo paquete `xgboost`, sin las librerías de GPU.
+xgboost==3.4.1; sys_platform != "linux"
+xgboost-cpu==3.4.1; sys_platform == "linux"
