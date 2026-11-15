@@ -50,21 +50,47 @@
       "user_avg_ticket_size": 85900.0,
       "user_cashback_responsiveness": 0.67,
       "user_credit_limit_utilization": 0.88,
-      "saldo_cop": 900000
+      "saldo_cop": 900000,
+      "medios": [
+        "CREDIT_CARD_BANK",
+        "DEBIT_CARD",
+        "DIRECT_ACCOUNT_TRANSFER"
+      ]
     },
     "USR-1483": {
       "nombre": "Saldo ajustado",
       "user_avg_ticket_size": 328700.0,
       "user_cashback_responsiveness": 0.71,
       "user_credit_limit_utilization": 0.15,
-      "saldo_cop": 150000
+      "saldo_cop": 150000,
+      "medios": [
+        "CREDIT_CARD_BANK",
+        "DEBIT_CARD",
+        "DIRECT_ACCOUNT_TRANSFER"
+      ]
     },
     "USR-1372": {
       "nombre": "Busca cashback",
       "user_avg_ticket_size": 167200.0,
       "user_cashback_responsiveness": 0.9,
       "user_credit_limit_utilization": 0.74,
-      "saldo_cop": 400000
+      "saldo_cop": 400000,
+      "medios": [
+        "CREDIT_CARD_BANK",
+        "DEBIT_CARD",
+        "DIRECT_ACCOUNT_TRANSFER"
+      ]
+    },
+    "USR-1167": {
+      "nombre": "Sin tarjeta de crédito",
+      "user_avg_ticket_size": 178800.0,
+      "user_cashback_responsiveness": 0.55,
+      "user_credit_limit_utilization": 0.9,
+      "saldo_cop": 600000,
+      "medios": [
+        "DEBIT_CARD",
+        "DIRECT_ACCOUNT_TRANSFER"
+      ]
     }
   }
 }

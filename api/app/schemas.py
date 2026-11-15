@@ -6,7 +6,23 @@ from pydantic import BaseModel, Field
 MONTO_MAX_COP = 20_000_000  # rango de monto definido en el Ciclo 1
 INCENTIVO_MAX_COP = 25_000  # tope del generador
 
+SALDO_MAX_COP = 1_000_000_000  # cota de cordura para el saldo que envía la app
+
 Canal = Literal["QR_STATIC", "QR_DYNAMIC", "E_COMMERCE_GATEWAY", "POS_PHYSICAL"]
+Medio = Literal["CREDIT_CARD_BANK", "DEBIT_CARD", "DIRECT_ACCOUNT_TRANSFER"]
+
+
+class Cliente(BaseModel):
+    """Datos financieros del comprador que conoce la app (en producción, el banco)."""
+
+    saldo_cop: float = Field(ge=0, le=SALDO_MAX_COP, allow_inf_nan=False, description="Saldo disponible en COP.")
+    uso_cupo: float = Field(
+        ge=0,
+        le=1,
+        allow_inf_nan=False,
+        description="Fracción del cupo de crédito en uso (0 a 1). Sin crédito se envía 1.",
+    )
+    medios: list[Medio] = Field(min_length=1, max_length=3, description="Medios de pago que tiene el comprador.")
 
 
 class RecomendacionRequest(BaseModel):
@@ -21,6 +37,10 @@ class RecomendacionRequest(BaseModel):
         le=INCENTIVO_MAX_COP,
         allow_inf_nan=False,
         description="Reemplaza el incentivo de la campaña. Solo para pruebas contrafactuales.",
+    )
+    cliente: Optional[Cliente] = Field(
+        default=None,
+        description="Saldo, uso del cupo y medios del comprador. Si falta, se usan los del catálogo.",
     )
 
 

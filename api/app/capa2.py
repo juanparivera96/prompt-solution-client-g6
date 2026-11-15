@@ -3,8 +3,9 @@
 La utilidad es la del cuaderno DataPreparation (celda «FASE 5.3»):
     U(medio) = W1 · P(medio) + W2 · B(medio)
     B = incentivo_cop / REF_INCENTIVO_COP solo para el medio al que aplica el incentivo
-Lo único que se agrega aquí es la factibilidad: un medio que el comprador no puede
-pagar se elimina del conjunto de opciones antes de elegir el de mayor utilidad.
+Lo único que se agrega aquí es la factibilidad: un medio que el comprador no tiene o
+con el que no puede pagar se elimina del conjunto de opciones antes de elegir el de
+mayor utilidad.
 """
 
 CREDITO = "CREDIT_CARD_BANK"
@@ -19,6 +20,7 @@ REF_INCENTIVO_COP = 15000.0  # valor de referencia para normalizar el incentivo
 MEDIO_INCENTIVO = TRANSFERENCIA  # el generador solo asocia el incentivo a la transferencia
 USO_CUPO_MAX = 0.90  # desde este uso del cupo se considera que el crédito no está disponible
 
+SIN_PRODUCTO = "sin_producto"
 SALDO_INSUFICIENTE = "saldo_insuficiente"
 CUPO_AGOTADO = "cupo_agotado"
 
@@ -32,14 +34,17 @@ def utilidades(propensiones, incentivo_cop):
     return resultado
 
 
-def medios_excluidos(saldo_cop, monto, uso_cupo):
-    """Medios que el comprador no puede usar en esta compra, con el motivo."""
-    excluidos = {}
+def medios_excluidos(saldo_cop, monto, uso_cupo, medios=MEDIOS):
+    """Medios que el comprador no puede usar en esta compra, con el motivo.
+
+    `medios` son los que el comprador tiene; por defecto, los tres.
+    """
+    excluidos = {m: SIN_PRODUCTO for m in MEDIOS if m not in medios}
     if saldo_cop < monto:
-        excluidos[DEBITO] = SALDO_INSUFICIENTE
-        excluidos[TRANSFERENCIA] = SALDO_INSUFICIENTE
+        excluidos.setdefault(DEBITO, SALDO_INSUFICIENTE)
+        excluidos.setdefault(TRANSFERENCIA, SALDO_INSUFICIENTE)
     if uso_cupo >= USO_CUPO_MAX:
-        excluidos[CREDITO] = CUPO_AGOTADO
+        excluidos.setdefault(CREDITO, CUPO_AGOTADO)
     return excluidos
 
 
@@ -50,10 +55,13 @@ def recomendar(propensiones, incentivo_cop, excluidos=None):
     """
     excluidos = excluidos or {}
     u = utilidades(propensiones, incentivo_cop)
-    habito = max(propensiones, key=propensiones.get)
+    # El hábito y la comparación son entre los medios que el comprador tiene: no se
+    # le dice «lo más probable es que pagues con crédito» a quien no tiene tarjeta.
+    propios = [m for m in propensiones if excluidos.get(m) != SIN_PRODUCTO]
+    habito = max(propios, key=propensiones.get) if propios else None
     factibles = [m for m in propensiones if m not in excluidos]
     recomendacion = max(factibles, key=u.get) if factibles else None
-    sin_restricciones = max(u, key=u.get)
+    sin_restricciones = max(propios, key=u.get) if propios else None
     return {
         "recomendacion": recomendacion,
         "habito": habito,
@@ -81,14 +89,20 @@ def motivo(decision, propensiones, incentivo_cop):
         return "No encontramos un medio con fondos suficientes para esta compra."
 
     if decision["cambio_por_factibilidad"]:
-        if SALDO_INSUFICIENTE in excluidos.values():
-            return f"Tu saldo no cubre esta compra con débito ni transferencia, por eso te sugerimos {NOMBRE[rec]}."
+        sin_saldo = [NOMBRE[m] for m in (DEBITO, TRANSFERENCIA) if excluidos.get(m) == SALDO_INSUFICIENTE]
+        if sin_saldo:
+            return f"Tu saldo no cubre esta compra con {' ni '.join(sin_saldo)}, por eso te sugerimos {NOMBRE[rec]}."
         return f"Tu cupo de crédito está casi lleno, por eso te sugerimos {NOMBRE[rec]}."
 
     if incentivo_cop > 0 and MEDIO_INCENTIVO in excluidos:
+        impedimento = (
+            "no tienes ese medio de pago"
+            if excluidos[MEDIO_INCENTIVO] == SIN_PRODUCTO
+            else "tu saldo no cubre esta compra"
+        )
         return (
             f"Te sugerimos {NOMBRE[rec]}, tu medio más probable ({_pct(propensiones[rec])}). "
-            f"Hay un incentivo de {_cop(incentivo_cop)} por {NOMBRE[MEDIO_INCENTIVO]}, pero tu saldo no cubre esta compra."
+            f"Hay un incentivo de {_cop(incentivo_cop)} por {NOMBRE[MEDIO_INCENTIVO]}, pero {impedimento}."
         )
 
     hay_incentivo = incentivo_cop > 0

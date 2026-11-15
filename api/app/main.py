@@ -20,7 +20,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from . import capa2, features
+from . import capa2, features, perfiles
 from .schemas import RecomendacionRequest, RecomendacionResponse
 
 BASE = Path(__file__).resolve().parents[1]
@@ -63,7 +63,7 @@ async def lifespan(_app):
 app = FastAPI(
     title="Prompt Solution Client — API de recomendación",
     description="MVP académico con datos sintéticos. La IA sugiere; el comprador decide.",
-    version="0.1.0",
+    version="0.2.0",
     lifespan=lifespan,
 )
 # La app Flutter en web se sirve desde otro origen; no se usan cookies ni credenciales.
@@ -98,7 +98,12 @@ def meta():
         "medios": a["clases"],
         "fuente_datos": cat["fuente"],
         "perfiles": {
-            uid: {"nombre": p["nombre"], "saldo_cop": p["saldo_cop"], "uso_cupo": p["user_credit_limit_utilization"]}
+            uid: {
+                "nombre": p["nombre"],
+                "saldo_cop": p["saldo_cop"],
+                "uso_cupo": p["user_credit_limit_utilization"],
+                "medios": p.get("medios", list(capa2.MEDIOS)),
+            }
             for uid, p in cat["perfiles"].items()
         },
         "categorias": {
@@ -122,7 +127,7 @@ def recomendacion(req: RecomendacionRequest):
     a = artefactos()
     cat = a["catalogo"]
 
-    perfil = cat["perfiles"].get(req.user_id)
+    perfil = perfiles.obtener_perfil(cat, req.user_id, req.cliente)
     if perfil is None:
         raise HTTPException(status_code=404, detail=f"Perfil '{req.user_id}' no encontrado. Ver /v1/meta.")
 
@@ -151,7 +156,9 @@ def recomendacion(req: RecomendacionRequest):
     probas = a["pipeline"].predict_proba(fila)[0]
     propensiones = {medio: float(p) for medio, p in zip(a["clases"], probas)}
 
-    excluidos = capa2.medios_excluidos(perfil["saldo_cop"], req.monto, perfil["user_credit_limit_utilization"])
+    excluidos = capa2.medios_excluidos(
+        perfil["saldo_cop"], req.monto, perfil["user_credit_limit_utilization"], perfil["medios"]
+    )
     decision = capa2.recomendar(propensiones, incentivo, excluidos)
 
     respuesta = RecomendacionResponse(
@@ -173,7 +180,11 @@ def recomendacion(req: RecomendacionRequest):
             "canal": req.canal,
             "incentivo_cop": incentivo,
             "incentivo_aplica_a": capa2.MEDIO_INCENTIVO if incentivo > 0 else None,
+            # Con qué datos del comprador se decidió y de dónde salieron.
             "saldo_cop": perfil["saldo_cop"],
+            "uso_cupo": perfil["user_credit_limit_utilization"],
+            "medios": perfil["medios"],
+            "fuente_perfil": perfil["fuente"],
             "hora": momento.hour,
             "dia_semana": momento.weekday(),
             "dia_quincena": momento.day in features.DIAS_QUINCENA,

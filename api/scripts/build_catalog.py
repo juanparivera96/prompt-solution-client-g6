@@ -30,10 +30,18 @@ CATEGORIAS = {
 
 # Compradores del CSV usados como perfiles de demo. El saldo es un supuesto:
 # el dataset solo trae la razón saldo/monto de cada transacción.
+# El último no tiene tarjeta de crédito (otro supuesto): se tomó un comprador con el
+# cupo en el máximo del dataset (0,90), lo más parecido a «sin crédito» que vio el modelo.
+MEDIOS = ["CREDIT_CARD_BANK", "DEBIT_CARD", "DIRECT_ACCOUNT_TRANSFER"]
 PERFILES = {
     "USR-1385": {"nombre": "Saldo holgado", "saldo_cop": 900000},
     "USR-1483": {"nombre": "Saldo ajustado", "saldo_cop": 150000},
     "USR-1372": {"nombre": "Busca cashback", "saldo_cop": 400000},
+    "USR-1167": {
+        "nombre": "Sin tarjeta de crédito",
+        "saldo_cop": 600000,
+        "medios": ["DEBIT_CARD", "DIRECT_ACCOUNT_TRANSFER"],
+    },
 }
 
 TOPE_INCENTIVO_COP = 25000  # mismo tope del generador
@@ -63,6 +71,7 @@ def main():
             "user_cashback_responsiveness": float(fila.user_cashback_responsiveness),
             "user_credit_limit_utilization": float(fila.user_credit_limit_utilization),
             "saldo_cop": cfg["saldo_cop"],
+            "medios": cfg.get("medios", MEDIOS),
         }
 
     catalogo = {
