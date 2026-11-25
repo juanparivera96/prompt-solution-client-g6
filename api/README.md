@@ -6,7 +6,7 @@ Servicio que expone el modelo de dos capas para la app Flutter. Es un MVP acadé
 App Flutter ──► POST /v1/recomendacion ──► Capa 1 (model_payment_final.pkl) ──► Capa 2 (utilidad + factibilidad)
 ```
 
-- **Capa 1:** el pipeline exportado por `DataPreparation_PromptSolutionClient.ipynb` estima la probabilidad de que el comprador use crédito, débito o transferencia.
+- **Capa 1:** el preprocesador y el modelo XGBoost exportados por `DataPreparation_PromptSolutionClient.ipynb` (versión 4) estiman la probabilidad de que el comprador use crédito, débito o transferencia.
 - **Capa 2:** la función de utilidad del cuaderno (`0,5·P + 0,5·incentivo/15.000`). La API agrega una regla: un medio que el comprador no tiene o con el que no puede pagar se descarta antes de elegir.
 
 La API no cambia el modelo: usa el mismo `.pkl`, las mismas 17 variables y la misma fórmula. Lo que decide es de dónde salen los datos del comprador (`app/perfiles.py`).
@@ -95,4 +95,4 @@ El plan gratuito apaga el servicio tras 15 minutos sin uso y tarda cerca de un m
 
 ## Si se reentrena el modelo
 
-Copiar los nuevos `model_payment_final.pkl` y `label_encoder.pkl` a `api/model/`, mantener en `requirements.txt` las versiones con las que se entrenó y correr las pruebas. Los casos marcados como «casos de la demo» en `tests/test_api.py` dependen del modelo actual y pueden necesitar ajuste.
+Desde la versión 4 el cuaderno exporta tres archivos: `preprocessor.pkl` (ColumnTransformer de la Fase 3), `model_payment_final.pkl` (XGBoost de la Fase 4) y `label_encoder.pkl`. Copiar los tres a `api/model/`, mantener en `requirements.txt` las versiones con las que se entrenó y correr las pruebas. Los casos marcados como «casos de la demo» en `tests/test_api.py` dependen del modelo actual y pueden necesitar ajuste.

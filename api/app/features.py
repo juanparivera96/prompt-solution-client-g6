@@ -23,7 +23,7 @@ def incentivo_campania(monto, pct, tope_cop):
 
 
 def construir_fila(perfil, categoria, monto, canal, incentivo_cop, incentivo_pct, momento, columnas):
-    """Devuelve un DataFrame de una fila con las columnas en el orden que espera el pipeline."""
+    """Devuelve un DataFrame de una fila con las columnas en el orden que espera el preprocesador."""
     ratio = perfil["saldo_cop"] / monto
     fila = {
         "user_avg_ticket_size": perfil["user_avg_ticket_size"],

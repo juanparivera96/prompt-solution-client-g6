@@ -1,6 +1,6 @@
 """API de recomendación de medios de pago — Prompt Solution Client (Grupo 6).
 
-Capa 1: pipeline exportado por el cuaderno (preprocesamiento + XGBoost) -> propensiones.
+Capa 1: preprocesador + XGBoost exportados por el cuaderno (V4) -> propensiones.
 Capa 2: función de utilidad del cuaderno + reglas de factibilidad -> recomendación.
 
 Ejecutar desde la carpeta api/:
@@ -24,7 +24,8 @@ from . import capa2, features, perfiles
 from .schemas import RecomendacionRequest, RecomendacionResponse
 
 BASE = Path(__file__).resolve().parents[1]
-MODELO = BASE / "model" / "model_payment_final.pkl"
+PREPROCESADOR = BASE / "model" / "preprocessor.pkl"  # ColumnTransformer ajustado en la Fase 3
+MODELO = BASE / "model" / "model_payment_final.pkl"  # XGBClassifier de la Fase 4
 ETIQUETAS = BASE / "model" / "label_encoder.pkl"
 CATALOGO = BASE / "data" / "catalog.json"
 
@@ -40,18 +41,28 @@ if not logger.handlers:
 
 @lru_cache(maxsize=1)
 def artefactos():
-    """Carga el pipeline, las etiquetas y el catálogo una sola vez."""
-    pipeline = joblib.load(MODELO)
+    """Carga el preprocesador, el modelo, las etiquetas y el catálogo una sola vez.
+
+    Desde el cuaderno V4 se exportan por separado (preprocessor.pkl y model_payment_final.pkl).
+    """
+    preprocesador = joblib.load(PREPROCESADOR)
+    modelo = joblib.load(MODELO)
     clases = [str(c) for c in joblib.load(ETIQUETAS).classes_]
     catalogo = json.loads(CATALOGO.read_text(encoding="utf-8"))
-    huella = hashlib.sha256(MODELO.read_bytes()).hexdigest()[:8]
+    huella = hashlib.sha256(PREPROCESADOR.read_bytes() + MODELO.read_bytes()).hexdigest()[:8]
     return {
-        "pipeline": pipeline,
+        "preprocesador": preprocesador,
+        "modelo": modelo,
         "clases": clases,
-        "columnas": list(pipeline.feature_names_in_),
+        "columnas": list(preprocesador.feature_names_in_),
         "catalogo": catalogo,
         "version": f"xgb-v10-{huella}",
     }
+
+
+def predecir(a, filas):
+    """Probabilidad de cada medio para cada fila, como en el cuaderno: transformar y predecir."""
+    return a["modelo"].predict_proba(a["preprocesador"].transform(filas))
 
 
 @asynccontextmanager
@@ -153,7 +164,7 @@ def recomendacion(req: RecomendacionRequest):
     fila = features.construir_fila(
         perfil, categoria, req.monto, req.canal, incentivo, incentivo_pct, momento, a["columnas"]
     )
-    probas = a["pipeline"].predict_proba(fila)[0]
+    probas = predecir(a, fila)[0]
     propensiones = {medio: float(p) for medio, p in zip(a["clases"], probas)}
 
     excluidos = capa2.medios_excluidos(

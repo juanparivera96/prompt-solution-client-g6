@@ -10,7 +10,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app import capa2, features
-from app.main import app, artefactos
+from app.main import app, artefactos, predecir
 
 RAIZ = Path(__file__).resolve().parents[2]
 CSV = RAIZ / "dataset_medios_pago_sintetico.csv"
@@ -320,7 +320,7 @@ def test_paridad_con_el_excel_del_cuaderno():
     df = pd.read_csv(CSV)
     y = df["target_chosen_payment_method"]
     _, x_test, _, _ = train_test_split(df[a["columnas"]], y, test_size=0.20, random_state=42, stratify=y)
-    probas = a["pipeline"].predict_proba(x_test)
+    probas = predecir(a, x_test)
     esperado = pd.read_excel(EXCEL)
 
     habitos, recomendaciones = [], []
